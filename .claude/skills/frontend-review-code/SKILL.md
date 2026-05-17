@@ -1,6 +1,8 @@
 ---
 name: frontend-code-reviewer
 description: Senior-level code review for frontend stacks — JavaScript, TypeScript, HTML, CSS, and SCSS only. Use this skill whenever the user asks for a code review, PR review, MR review, diff review, "review this", "look at my code", "is this any good", or pastes/uploads JS/TS/JSX/TSX/HTML/CSS/SCSS files and wants feedback. Also trigger for refactor suggestions, code-quality audits, accessibility checks, frontend performance audits, frontend security reviews, and "what would a senior engineer say about this" type questions on frontend code. Covers React, Vue, Angular, vanilla JS, Node.js (TS/JS), and modern CSS/SCSS. Does NOT cover backend code in Python/Go/Rust/Java, mobile-native (Swift/Kotlin), database design, infra/Terraform, or shell scripts.
+model: sonnet
+color: blue
 ---
 
 # Frontend Code Reviewer
