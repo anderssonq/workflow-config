@@ -6,15 +6,20 @@ Dotfiles and AI development tools configuration. Includes Claude Code skills, ag
 
 ```
 .claude/
-├── agents/                    # Specialized Claude agents
-│   ├── spec-context-agent.md  # Spec-driven development orchestrator
-│   └── pr-review-agent.md     # Code review + PR description generator
-├── skills/                    # Reusable development skills
+├── agents/                         # Specialized Claude agents
+│   ├── spec-context-agent.md       # Spec-driven development orchestrator
+│   ├── pr-review-agent.md          # Code review + PR description generator
+│   ├── pr-description-agent.md     # PR description only (no review)
+│   └── knowledge-graph-agent.md    # Builds/queries a project knowledge graph
+├── skills/                         # Reusable development skills
 │   ├── spec-driven-development/
-│   ├── frontend-review-code/
-│   └── pr-description-generator/
-.spec/                         # Generated spec artifacts (gitignored)
-.tmp/                          # Generated output files (gitignored)
+│   ├── code-reviewer/
+│   ├── pr-description-generator/
+│   ├── prompt-context-library/
+│   └── knowledge-graph/
+.spec/                              # Generated spec artifacts (gitignored)
+.tmp/                               # Generated output files (gitignored)
+graphify-out/                       # Knowledge-graph output (graph.json, report, html)
 ```
 
 ## 🚀 Quick Start
@@ -48,6 +53,25 @@ Generate PR descriptions after implementation:
 - Full senior-level code review
 - Structured PR/MR description saved to `.tmp/`
 
+For a PR description **without** a review, use `@pr-description-agent` instead.
+
+### Using Knowledge Graph Agent
+
+Map a project into a queryable knowledge graph — then ask questions instead of grepping:
+
+```
+@knowledge-graph-agent map this project
+@knowledge-graph-agent what connects pr-review-agent to code-reviewer?
+@knowledge-graph-agent explain code-reviewer
+```
+
+**What you get** (under `graphify-out/`):
+- `graph.json` — nodes, edges, communities, god nodes (confidence-tagged: EXTRACTED / INFERRED / AMBIGUOUS)
+- `GRAPH_REPORT.md` — most-connected concepts, surprising cross-module links, the "why", suggested questions
+- `graph.html` — self-contained interactive viz (click, search, filter by community)
+
+Fully native — no external package or API key. Re-run with `--update` after changes to refresh only what moved.
+
 ## 🎯 Workflow
 
 ```
@@ -69,11 +93,17 @@ Generate PR descriptions after implementation:
 ### spec-driven-development
 4-phase gated workflow (Specify → Plan → Tasks → Implement). Enforces human approval before any code is written.
 
-### frontend-review-code
-Senior-level code review for TypeScript, JavaScript, React, Vue, Angular, HTML, SCSS.
+### code-reviewer
+Comprehensive code review for TypeScript, JavaScript, Python, Swift, Kotlin, Go. Includes analysis scripts, best-practice checks, security scanning, and review-checklist generation.
 
 ### pr-description-generator
 Generates structured PR descriptions following Conventional Commits + Gitmoji.
+
+### prompt-context-library
+Save and retrieve reusable prompts and project context as markdown, so you don't rewrite the same instructions for recurring agent tasks.
+
+### knowledge-graph
+Maps a project (code, docs, configs, media) into a queryable knowledge graph using only native tools — a Claude-native replica of graphify with no external package. Produces `graph.json` + `GRAPH_REPORT.md` + `graph.html`; supports query / path / explain and incremental `--update`.
 
 ## 🎓 Best Practices
 
