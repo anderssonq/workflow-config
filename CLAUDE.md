@@ -13,6 +13,8 @@ This repo is a personal Claude Code configuration store — dotfiles and AI work
   skills/
     <skill-name>/
       SKILL.md   # The skill definition — frontmatter + full prompt
+  agents/
+    <agent-name>.md   # Subagent definition — frontmatter + workflow prompt
 .tmp/            # Generated output files (gitignored); skills write here by default
 ```
 
@@ -42,6 +44,22 @@ The `description` field is the trigger surface — it's what Claude reads to dec
 1. Create `.claude/skills/<skill-name>/SKILL.md`.
 2. Write the frontmatter (`name`, `description`) and the full prompt body.
 3. The description field determines when Claude auto-triggers the skill — write it as the user-facing trigger conditions, not as internal documentation.
+
+## Agents
+
+Agents live in `.claude/agents/<name>.md` — YAML frontmatter (`name`, `description`, `model`, optional `color`, `permissions`) followed by a workflow prompt. The `description` is the trigger surface Claude uses to decide when to delegate to the agent. Agents typically bootstrap by reading one or more skills, then drive a multi-step workflow.
+
+### Current agents
+
+- **`pr-description-agent`** — PR/MR description **only** (no code review). Reads `pr-description-generator/SKILL.md` and produces a Markdown PR description for the current branch.
+- **`pr-review-agent`** — code review **+** PR description. Reads `code-reviewer` then `pr-description-generator`, using the review as context for the write-up.
+- **`spec-context-agent`** — spec-driven development. Reads `spec-driven-development` and generates specification/plan/tasks artifacts in `.spec/`.
+
+### Adding a new agent
+
+1. Create `.claude/agents/<agent-name>.md` with frontmatter and a workflow prompt.
+2. Have the agent read the relevant skill(s) first, then carry out the workflow.
+3. Write `description` as the user-facing trigger conditions, and steer overlapping triggers toward the right agent (e.g. PR-only vs. review+PR).
 
 ## Output conventions
 

@@ -122,12 +122,20 @@ If found, include the file path(s) and a 2–3 sentence summary in the PR descri
 
 ### Filename
 
+Pattern: `<output_dir>/<MM-DD-YY>_<INDEX>_<TICKET_KEY>-PR-DESCRIPTION.md`
+
+- `MM-DD-YY` — today's date with dashes (e.g. `05-30-26`). No slashes; filenames don't allow them.
+- `INDEX` — zero-padded 2-digit counter scoped to today. Scan `<output_dir>` for files matching `<MM-DD-YY>_*` and set INDEX to the next available number (01, 02, 03…).
+- `TICKET_KEY` — the detected ticket key. If no ticket: use a sanitized branch name (e.g. `feature-add-login`).
+
+Examples:
 ```
-<output_dir>/<TICKET_KEY>-PR-DESCRIPTION.md
+.tmp/05-30-26_01_APP-123-PR-DESCRIPTION.md
+.tmp/05-30-26_02_APP-456-PR-DESCRIPTION.md
+.tmp/05-31-26_01_feature-add-login-PR-DESCRIPTION.md
 ```
 
-If no ticket: use a sanitized branch name (`feature-add-login-PR-DESCRIPTION.md`).
-If the file already exists: append `-v2`, `-v3`, etc.
+Never use `-v2` / `-v3` suffixes — the date + index already disambiguates.
 
 ### Template
 
@@ -137,6 +145,7 @@ If the file already exists: append `-v2`, `-v3`, etc.
 **Ticket:** [<TICKET_KEY>](<ticket_url>)
 **Branch:** `<CURRENT_BRANCH>` → `<TARGET_BRANCH>`
 **Author:** <git config user.name>
+**Date:** <today's date in MM/DD/YY format — e.g. 05/30/26>
 
 ## Problem
 
