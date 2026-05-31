@@ -38,6 +38,7 @@ The `description` field is the trigger surface — it's what Claude reads to dec
 
 - **`pr-description-generator`** — PR/MR description workflow: base-branch detection → git diff/log → ticket lookup → structured Markdown output to `.tmp/` (no code review — that's a separate skill)
 - **`frontend-review-code`** — opinionated senior-level review for JS/TS/HTML/CSS/SCSS; covers React, Vue, Angular, vanilla JS, Node.js, and modern CSS/SCSS; explicitly excludes backend, mobile-native, DB, infra, and shell
+- **`knowledge-graph`** — Claude-native replica of "graphify": maps a project (code, docs, configs, media) into a queryable knowledge graph using only native tools (Glob/Grep/Read) — no external package. Emits `graphify-out/{graph.json, GRAPH_REPORT.md, graph.html}` with god nodes, communities, surprising connections, the "why", and confidence-tagged edges; supports query/path/explain and incremental `--update`
 
 ### Adding a new skill
 
@@ -54,6 +55,7 @@ Agents live in `.claude/agents/<name>.md` — YAML frontmatter (`name`, `descrip
 - **`pr-description-agent`** — PR/MR description **only** (no code review). Reads `pr-description-generator/SKILL.md` and produces a Markdown PR description for the current branch.
 - **`pr-review-agent`** — code review **+** PR description. Reads `code-reviewer` then `pr-description-generator`, using the review as context for the write-up.
 - **`spec-context-agent`** — spec-driven development. Reads `spec-driven-development` and generates specification/plan/tasks artifacts in `.spec/`.
+- **`knowledge-graph-agent`** — builds and queries a project knowledge graph natively (no external tool). Reads `knowledge-graph` then routes between build, query (`what connects X to Y`, `explain`, `path`), and incremental update.
 
 ### Adding a new agent
 
