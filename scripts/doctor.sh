@@ -42,7 +42,32 @@ linked "$HOME/.zshenv"            dotfiles/zsh/zshenv
 linked "$HOME/.zprofile"          dotfiles/zsh/zprofile
 linked "$HOME/.zshrc"             dotfiles/zsh/zshrc
 linked "$HOME/.gitignore_global"  dotfiles/git/gitignore_global
-linked "$HOME/.config/herdr/config.toml" dotfiles/herdr/config.toml
+# Copied, not linked — radar writes into it. See install.sh for why.
+[ -f "$HOME/.config/herdr/config.toml" ] \
+  && ok '~/.config/herdr/config.toml' \
+  || bad 'missing: ~/.config/herdr/config.toml'
+if [ -L "$HOME/.config/herdr/config.toml" ]; then
+  bad 'config.toml is a SYMLINK into the repo — radar will write its generated blocks, and their absolute path, into git'
+fi
+
+# herdr-radar generates config blocks this repo deliberately omits. A config
+# with neither the plugin nor the blocks renders an unstyled sidebar, which
+# looks like a broken install rather than a missing plugin.
+if command -v herdr >/dev/null 2>&1; then
+  if herdr plugin list 2>/dev/null | grep -q 'hhdebb.herdr-radar'; then
+    ok 'herdr-radar installed'
+  else
+    warn 'herdr-radar not confirmed — herdr plugin install hhdebb/herdr-radar --yes'
+  fi
+fi
+if grep -q 'herdr-radar' "$HOME/.config/herdr/config.toml" 2>/dev/null; then
+  grep -q '# >>> herdr-radar' "$HOME/.config/herdr/config.toml" \
+    && ok 'radar managed blocks present in config.toml' \
+    || warn 'config.toml mentions radar but has no managed blocks — run the plugin once'
+fi
+[ -f "$HOME/Library/LaunchAgents/dev.herdr.sidebar-index.plist" ] \
+  && ok 'sidebar-index job installed' \
+  || warn 'sidebar-index job missing — see dotfiles/herdr/README.md'
 
 if [ -f "$HOME/.gitconfig" ]; then
   if grep -q '{{ GIT_' "$HOME/.gitconfig"; then bad '~/.gitconfig still has template placeholders'

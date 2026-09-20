@@ -20,6 +20,7 @@ Format and numbering rules:
 | [007](#adr-007--neovim-stays-in-its-own-repository) | Neovim stays in its own repository | active |
 | [008](#adr-008--vendored-entries-record-their-own-licence-and-legal-files-travel-with-them) | Vendored entries record their own licence, and legal files travel with them | active |
 | [009](#adr-009--english-everywhere-enforced-by-the-linter) | English everywhere, enforced by the linter | active |
+| [010](#adr-010--plugin-generated-config-is-not-committed-and-the-file-it-writes-is-copied-not-linked) | Plugin-generated config is not committed, and the file it writes is copied, not linked | active |
 
 ---
 
@@ -159,3 +160,26 @@ Format and numbering rules:
   repository ships Python. A false positive is escaped with an `allow-spanish` marker on the
   line. Revisit if the marker is ever needed more than once — that would mean the word list
   is wrong rather than the file.
+
+## ADR-010 — Plugin-generated config is not committed, and the file it writes is copied, not linked
+
+- **Context:** herdr-radar renders the agent sidebar, and it does so by writing managed
+  blocks into `~/.config/herdr/config.toml` between its own markers. It owns `tab_bar_right`,
+  the three `[ui.sidebar.*]` tables and `[theme.custom]` outright, and refuses to run —
+  changing nothing — if it finds any of them declared by hand outside its markers, because
+  TOML forbids declaring a table twice and an unparseable config takes every plugin down.
+- **Decision:** commit only the hand-written half of `config.toml`, with a comment where each
+  managed block belongs saying what writes it and how to get it. Install by **copying** that
+  file rather than symlinking it.
+- **Alternatives:** committing the generated blocks (they hardcode an absolute path into the
+  plugin's state directory, so the secret gate refuses them, and it means fighting the plugin
+  on every machine); symlinking `config.toml` into the repository (the plugin then writes its
+  generated blocks, and that absolute path, straight into git — the gate would start refusing
+  every commit and the cause would not be obvious); not using the plugin.
+- **Consequences:** a fresh machine gets an unstyled sidebar until the plugin runs once, so
+  `doctor.sh` checks for both the plugin and the markers, and reports a symlinked
+  `config.toml` as a defect. Two overrides had to move: `panel_bg` went from `[theme.custom]`
+  to `[theme.custom.light]` and `[theme.custom.dark]`, which radar does not manage and herdr
+  layers on top; and the five-second `sidebar-index.sh` run left `tab_bar_right` for a
+  launchd job at ten seconds. Revisit if radar ever gains a way to declare overrides it will
+  preserve — the subtable trick works, but it works by not being on a list.

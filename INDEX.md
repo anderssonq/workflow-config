@@ -97,7 +97,7 @@ Machine-readable equivalent: [`catalog.json`](catalog.json).
 - [`claude`](dotfiles/claude/README.md) — | Copy | To |
 - [`editors`](dotfiles/editors/README.md) — | Copy | To |
 - [`git`](dotfiles/git/README.md) — | File | Goes to |
-- [`herdr`](dotfiles/herdr/README.md) — Terminal multiplexer, Neovim-first and agent-aware. `config.toml` goes to
+- [`herdr`](dotfiles/herdr/README.md) — Terminal multiplexer, Neovim-first and agent-aware.
 - [`nvim`](dotfiles/nvim/README.md) — **Not vendored here, on purpose.** The configuration is its own repository, with its own
 - [`terminal`](dotfiles/terminal/README.md) — There is not much here, and that is the point: **herdr is the terminal layer.** It owns the
 - [`zsh`](dotfiles/zsh/README.md) — | File | Goes to | Loaded |

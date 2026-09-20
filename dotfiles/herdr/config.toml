@@ -96,18 +96,37 @@ directory = "~/Projects/worktrees"
 # Theme
 # ---------------------------------------------------------------------------
 [theme]
-name       = "catppuccin"
-auto_switch = true
+name = "catppuccin"
+auto_switch = false
 light_name  = "catppuccin-latte"
 dark_name   = "catppuccin"
 
-[theme.custom]
+# panel_bg lives in the light/dark subtables, not [theme.custom]: herdr-radar
+# manages [theme.custom] and refuses to run if we also declare it. These layer
+# on top of whatever radar writes there.
+[theme.custom.light]
 panel_bg = "reset"   # let the host terminal background show through
+
+[theme.custom.dark]
+panel_bg = "reset"
 
 # ---------------------------------------------------------------------------
 # UI
 # ---------------------------------------------------------------------------
 [ui]
+
+# herdr-radar owns `tab_bar_right` and `tab_bar_right_separator` and writes them
+# between its own `# >>> herdr-radar ... # <<<` markers. Its generated block is
+# NOT committed: it hardcodes an absolute path into the plugin's state directory,
+# which is per-machine and would leak a username into a public repository.
+#
+# After installing the plugin, let it write its own:
+#   herdr plugin install hhdebb/herdr-radar --yes
+#
+# Do not hand-write those two keys here. Radar refuses to run — and changes
+# nothing — if it finds them declared outside its markers, because TOML forbids
+# declaring a table twice and an unparseable config takes every plugin down.
+
 pane_borders      = "auto"
 tab_bar_position  = "top"
 
@@ -123,49 +142,11 @@ agent_panel_sort        = "spaces"    # group agents under their space
 status_indicators = "symbols"   # shape + color, not color alone
 window_title      = "{hostname}: {workspace}"
 
-tab_bar_right = [
-  { type = "zoom" },
-  { type = "hostname" },
-  { type = "datetime", format = "%H:%M" },
-  # Not a status entry: this reconciles the $idx sidebar tokens on spaces and
-  # agent panes every 5s. It prints nothing, so it stays invisible.
-  { type = "command", command = "~/.config/herdr/sidebar-index.sh", interval_seconds = 5, timeout_seconds = 3 },
-]
-tab_bar_right_separator = " · "
-
-# Agents panel: one entry per agent pane, in the left column.
-# $idx is the digit for prefix+alt+N, written by sidebar-index.sh. Unlike the
-# space number it is inferred, not reported by the server -- see that script.
-[ui.sidebar.agents]
-row_gap = 0
-rows = [
-  [{ token = "$idx", fg = "#6c7086" }, "state_icon", "agent", "state_text"],
-  ["workspace", "tab", "pane"],
-]
-
-[ui.sidebar.agents.rows_by_agent]
-claude = [
-  [{ token = "$idx", fg = "#6c7086" }, "state_icon", "agent", "state_text"],
-  ["terminal_title_stripped"],
-  ["workspace", "tab", "pane"],
-]
-
-# Spaces panel: one entry per workspace, above the Agents panel.
-# $idx is the digit for prefix+shift+N, mirrored from the workspace number by
-# sidebar-index.sh. It is absent past 9, where no binding exists, and herdr
-# drops absent tokens along with their separator.
-[ui.sidebar.spaces]
-row_gap = 0
-rows = [
-  [{ token = "$idx", fg = "#6c7086" }, "state_icon", "workspace"],
-  ["branch", "git_status"],
-]
-
 # ---------------------------------------------------------------------------
 # Notifications
 # ---------------------------------------------------------------------------
 [ui.toast]
-delivery      = "herdr"
+delivery = "system"
 delay_seconds = 1
 
 [ui.toast.herdr]
@@ -176,3 +157,15 @@ position = "bottom-right"
 # ---------------------------------------------------------------------------
 [session]
 resume_agents_on_restore = true
+
+# ---------------------------------------------------------------------------
+# What herdr-radar adds below this line
+# ---------------------------------------------------------------------------
+# The plugin appends two more managed blocks when it runs: `[theme.custom]`
+# (it sets only `active_row_bg`) and the three `[ui.sidebar.*]` tables that
+# render the Agents and Spaces panels.
+#
+# All of it is generated. None of it is committed. Install the plugin and it
+# writes its own:
+#   herdr plugin install hhdebb/herdr-radar --yes
+#   herdr plugin action invoke hhdebb.herdr-radar.state-start   # if the sidebar does not change

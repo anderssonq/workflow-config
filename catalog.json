@@ -166,8 +166,8 @@
       "kind": "dotfiles",
       "shelf": "dotfiles",
       "path": "dotfiles/herdr/README.md",
-      "description": "Terminal multiplexer, Neovim-first and agent-aware. `config.toml` goes to",
-      "lines": 53
+      "description": "Terminal multiplexer, Neovim-first and agent-aware.",
+      "lines": 132
     },
     {
       "id": "nvim",

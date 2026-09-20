@@ -119,8 +119,42 @@ fi
 # ── herdr ────────────────────────────────────────────────────────────────
 if wants herdr; then
   printf '\nherdr\n'
-  link dotfiles/herdr/config.toml      "$HOME/.config/herdr/config.toml"
+  # config.toml is COPIED, not linked: herdr-radar writes its generated blocks
+  # into this file. A symlink would send them into the repository, along with
+  # the absolute path radar puts in its tab-bar block — and the secret gate
+  # would then refuse every commit until someone worked out why.
+  copy dotfiles/herdr/config.toml      "$HOME/.config/herdr/config.toml"
   link dotfiles/herdr/sidebar-index.sh "$HOME/.config/herdr/sidebar-index.sh"
+
+  # The periodic sidebar-index run. It used to be a tab_bar_right entry until
+  # herdr-radar took that key over. launchd expands neither ~ nor $HOME, so the
+  # job description is rendered from a template rather than linked.
+  JOB="$HOME/Library/LaunchAgents/dev.herdr.sidebar-index.plist"
+  if [ "$APPLY" -eq 1 ]; then
+    mkdir -p "$HOME/Library/LaunchAgents" "$HOME/.local/state/herdr-sidebar-index"
+    sed "s|{{ HOME }}|$HOME|g" \
+      "$REPO/dotfiles/herdr/dev.herdr.sidebar-index.plist.template" > "$JOB"
+    say "wrote $JOB"
+    say 'load it with:  launchctl bootstrap gui/$(id -u) "'"$JOB"'"'
+  else
+    say "would render $JOB from the template"
+  fi
+
+  # herdr-radar generates the config blocks this repo deliberately omits.
+  if command -v herdr >/dev/null 2>&1; then
+    # The daemon is not always up, so a miss here means "could not confirm",
+    # not "not installed". Saying the second would send you to reinstall
+    # something you already have.
+    if herdr plugin list 2>/dev/null | grep -q 'hhdebb.herdr-radar'; then
+      say 'ok (already installed): herdr-radar'
+    else
+      say 'herdr-radar not confirmed. If it is missing:'
+      say '  herdr plugin install hhdebb/herdr-radar --yes'
+      say '  then restart the terminal fully (Cmd+Q) so its icon font loads'
+    fi
+  else
+    say 'herdr not on PATH — install it, then re-run with --only herdr'
+  fi
 fi
 
 # ── claude ───────────────────────────────────────────────────────────────

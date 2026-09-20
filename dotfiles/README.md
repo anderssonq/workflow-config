@@ -8,7 +8,7 @@ goes where if you would rather do it by hand.
 | [`zsh/`](zsh/) | The three-file shell split, and the secrets example |
 | [`git/`](git/) | A templated `.gitconfig` and the global ignore file |
 | [`brew/`](brew/) | A curated `Brewfile`, grouped by why each entry exists |
-| [`herdr/`](herdr/) | The terminal multiplexer — every binding carries its reason |
+| [`herdr/`](herdr/) | The terminal multiplexer, its radar plugin, and a timer job |
 | [`nvim/`](nvim/) | Why the Neovim config is its own repository, and how it gets cloned |
 | [`claude/`](claude/) | User-level Claude Code settings and theme |
 | [`editors/`](editors/) | VS Code, Cursor and Zed, sanitised |
@@ -47,6 +47,7 @@ none of them is a hard dependency — you can adopt one and skip the rest.
 | `~/.npmrc` | It holds a registry auth token |
 | Neovim itself | Its own public repository; a copy here would drift silently |
 | Sockets, logs, session files | Runtime state, per-machine, and two are live file descriptors |
+| herdr-radar's generated config blocks | The plugin owns them, and one hardcodes an absolute path into its state directory |
 | Anything with a hostname or an absolute home path | See the note below |
 
 ## The thing that actually leaks
