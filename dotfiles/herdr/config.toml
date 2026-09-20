@@ -1,0 +1,178 @@
+# ~/.config/herdr/config.toml
+# Neovim-oriented setup: nothing steals keys from nvim in terminal mode.
+# Reload after editing: `herdr server reload-config`
+
+onboarding = false
+
+# ---------------------------------------------------------------------------
+# Terminal / pane defaults
+# ---------------------------------------------------------------------------
+[terminal]
+# default_shell = "zsh"          # uncomment to pin; otherwise $SHELL is used
+shell_mode = "auto"              # login shells on macOS so PATH setup runs
+new_cwd = "follow"               # inherit cwd from the source pane/workspace
+kitty_graphics = true            # keep image.nvim / snacks.image working
+
+# ---------------------------------------------------------------------------
+# Keybindings
+# ---------------------------------------------------------------------------
+# WHY ctrl+space: the default prefix ctrl+b is <C-b> in Neovim (scroll page up).
+# ctrl+a is also taken (increment number). ctrl+space is free in stock nvim.
+# If your terminal swallows ctrl+space, use "ctrl+q" instead.
+[keys]
+prefix = "ctrl+space"
+
+# --- tabs -------------------------------------------------------------------
+new_tab       = "prefix+c"
+next_tab      = "prefix+n"
+previous_tab  = "prefix+p"
+switch_tab    = "prefix+1..9"
+
+# --- workspaces / agents ----------------------------------------------------
+goto             = "prefix+g"
+switch_workspace = "prefix+shift+1..9"
+focus_agent      = "prefix+alt+1..9"
+
+# --- splits -----------------------------------------------------------------
+split_horizontal = "prefix+minus"
+split_vertical   = "prefix+backslash"
+
+# --- pane focus (prefix-first: <C-h/j/k/l> stays with nvim windows) ----------
+focus_pane_left  = "prefix+h"
+focus_pane_down  = "prefix+j"
+focus_pane_up    = "prefix+k"
+focus_pane_right = "prefix+l"
+
+# --- navigate mode only: plain keys are safe here, the mode is modal ---------
+navigate_pane_left       = "h"
+navigate_pane_down       = "j"
+navigate_pane_up         = "k"
+navigate_pane_right      = "l"
+navigate_workspace_down  = "ctrl+j"
+navigate_workspace_up    = "ctrl+k"
+
+# --- resize without entering resize mode ------------------------------------
+# Neovim does not bind ctrl+shift+alt+arrows, so a direct chord is safe.
+resize_pane_left  = "ctrl+shift+alt+left"
+resize_pane_down  = "ctrl+shift+alt+down"
+resize_pane_up    = "ctrl+shift+alt+up"
+resize_pane_right = "ctrl+shift+alt+right"
+
+# ---------------------------------------------------------------------------
+# Custom commands
+# ---------------------------------------------------------------------------
+[[keys.command]]
+key         = "prefix+shift+g"
+type        = "popup"
+command     = "lazygit"
+description = "lazygit"
+width       = "90%"
+height      = "90%"
+
+[[keys.command]]
+key         = "prefix+t"
+type        = "popup"
+command     = "exec \"${SHELL:-sh}\""
+description = "scratch terminal"
+width       = "80%"
+height      = "80%"
+
+# Quick edit of this file, in the pane's cwd context.
+[[keys.command]]
+key         = "prefix+e"
+type        = "popup"
+command     = "nvim ~/.config/herdr/config.toml"
+description = "edit herdr config"
+width       = "85%"
+height      = "85%"
+
+# ---------------------------------------------------------------------------
+# Worktrees
+# ---------------------------------------------------------------------------
+[worktrees]
+directory = "~/Projects/worktrees"
+
+# ---------------------------------------------------------------------------
+# Theme
+# ---------------------------------------------------------------------------
+[theme]
+name       = "catppuccin"
+auto_switch = true
+light_name  = "catppuccin-latte"
+dark_name   = "catppuccin"
+
+[theme.custom]
+panel_bg = "reset"   # let the host terminal background show through
+
+# ---------------------------------------------------------------------------
+# UI
+# ---------------------------------------------------------------------------
+[ui]
+pane_borders      = "auto"
+tab_bar_position  = "top"
+
+# --- left column (sidebar) --------------------------------------------------
+# The sidebar holds two panels: Spaces (top) and Agents (bottom).
+# Drag the divider between them to resize; the split is remembered in session.json.
+sidebar_width          = 30   # default width; auto-scales inside min/max
+sidebar_min_width      = 22
+sidebar_max_width      = 40
+sidebar_start_collapsed = false
+sidebar_collapsed_mode  = "compact"   # keep the status rail when collapsed
+agent_panel_sort        = "spaces"    # group agents under their space
+status_indicators = "symbols"   # shape + color, not color alone
+window_title      = "{hostname}: {workspace}"
+
+tab_bar_right = [
+  { type = "zoom" },
+  { type = "hostname" },
+  { type = "datetime", format = "%H:%M" },
+  # Not a status entry: this reconciles the $idx sidebar tokens on spaces and
+  # agent panes every 5s. It prints nothing, so it stays invisible.
+  { type = "command", command = "~/.config/herdr/sidebar-index.sh", interval_seconds = 5, timeout_seconds = 3 },
+]
+tab_bar_right_separator = " · "
+
+# Agents panel: one entry per agent pane, in the left column.
+# $idx is the digit for prefix+alt+N, written by sidebar-index.sh. Unlike the
+# space number it is inferred, not reported by the server -- see that script.
+[ui.sidebar.agents]
+row_gap = 0
+rows = [
+  [{ token = "$idx", fg = "#6c7086" }, "state_icon", "agent", "state_text"],
+  ["workspace", "tab", "pane"],
+]
+
+[ui.sidebar.agents.rows_by_agent]
+claude = [
+  [{ token = "$idx", fg = "#6c7086" }, "state_icon", "agent", "state_text"],
+  ["terminal_title_stripped"],
+  ["workspace", "tab", "pane"],
+]
+
+# Spaces panel: one entry per workspace, above the Agents panel.
+# $idx is the digit for prefix+shift+N, mirrored from the workspace number by
+# sidebar-index.sh. It is absent past 9, where no binding exists, and herdr
+# drops absent tokens along with their separator.
+[ui.sidebar.spaces]
+row_gap = 0
+rows = [
+  [{ token = "$idx", fg = "#6c7086" }, "state_icon", "workspace"],
+  ["branch", "git_status"],
+]
+
+# ---------------------------------------------------------------------------
+# Notifications
+# ---------------------------------------------------------------------------
+[ui.toast]
+delivery      = "herdr"
+delay_seconds = 1
+
+[ui.toast.herdr]
+position = "bottom-right"
+
+# ---------------------------------------------------------------------------
+# Sessions
+# ---------------------------------------------------------------------------
+[session]
+resume_agents_on_restore = true

@@ -1,0 +1,39 @@
+packages:
+  - apps/*
+  - packages/*
+
+# pnpm 10 blocks dependency install scripts unless they are allowlisted. Two
+# lists, so that every decision is visible rather than implied by silence.
+
+# Postinstall genuinely required: native builds and generated clients.
+onlyBuiltDependencies:
+  - esbuild
+  # - '@prisma/client'
+  # - '@prisma/engines'
+
+# Deliberately never run. Each entry says why, because "we never run it" is a
+# decision someone will otherwise reverse by accident.
+ignoredBuiltDependencies:
+  - '@scarf/scarf' # telemetry only; nothing here needs it
+
+# Advisory floors for TRANSITIVE dependencies, consolidated by hand after
+# `pnpm audit --fix`. Four rules:
+#
+#   1. Stay inside the requester's semver range. Never cross a major to satisfy
+#      an advisory — that trades a known problem for an unknown one.
+#   2. EVERY entry carries an upper bound. An open-ended '>=3.1.5' on fast-uri
+#      resolved forward to 4.x and net-added four advisories. The bound is the fix.
+#   3. Say which entries reach production. A dev-only floor is a different risk.
+#   4. Re-check on every dependency change: a floor whose requester has caught up
+#      is a pin nobody needs and everybody inherits.
+#
+overrides: {}
+#   # reaches production
+#   fast-uri: '>=3.1.5 <4'
+#   # dev only (test runner tree)
+#   tmp: '>=0.2.4 <1'
+
+# Advisories that `pnpm audit --prod` is permitted to still report. Every entry
+# needs an identifier, a module and a reason. Adding a second one needs an ADR —
+# the first exception is a judgement call, the second is a policy.
+# See ../ci-cd/audit-gate.mjs, which fails in BOTH directions.

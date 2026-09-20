@@ -1,2 +1,37 @@
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Machine-local Claude Code state. Never shared: it holds per-machine
+# permission grants and absolute paths.
+**/.claude/settings.local.json
+**/.claude/scheduled_tasks.lock
+**/.claude/worktrees/
+
+# Generated output. Skills write here; none of it is a document of record.
 .tmp/
 .local/
+.spec/
+graphify-out/
+
+# Runtime leftovers that a dotfiles repo attracts.
+*.sock
+*.log
+*.bak
+
+# Secrets never live here. This is a guard, not a place to put them.
+.env
+.env.*
+!.env.example
+.secrets
+
+# Vendored skill bodies. They are someone else's work under their own licence,
+# and a committed copy drifts from upstream with nothing to signal that it has.
+# scripts/sync-skill.sh fetches them from claude/skills/vendored/skills-lock.json.
+claude/skills/vendored/*/
+
+# Local denylist of names that must not be published. See .scan-denylist.example.
+.scan-denylist
+
+# Machine- and account-specific values. See dotfiles/local.env.example.
+dotfiles/local.env

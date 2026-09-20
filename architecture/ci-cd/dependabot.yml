@@ -1,0 +1,65 @@
+# READ THIS BEFORE MERGING ANYTHING DEPENDABOT OPENS
+#
+# If merging to the default branch deploys, and CI reports rather than blocks,
+# then a Dependabot pull request is a PROPOSAL TO SHIP — not a chore. Read the
+# changelog, not just the green check.
+#
+# Three of the four ecosystems below see less than their names suggest. Each
+# carries a note saying what it can actually observe in this repository, because
+# a registered ecosystem that sees nothing looks identical to a working one.
+
+version: 2
+updates:
+  # 1. The one that keeps the SHA pins in ci.yml from aging. Without it, "pinned
+  #    by commit" quietly becomes "pinned to something from two years ago".
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly }
+    groups:
+      actions: { patterns: ['*'] } # one PR, not eight
+    commit-message:
+      prefix: 'ci: :arrow_up:'
+
+  # 2. The npm fetcher reads the pnpm workspace globs, so ONE entry covers every
+  #    package in the monorepo.
+  #
+  #    Two limits worth knowing:
+  #      - pnpm `overrides` are INVISIBLE to Dependabot. Transitive floors are
+  #        maintained by hand; see ../monorepo-pnpm/README.md.
+  #      - version updates cover DECLARED dependencies only.
+  - package-ecosystem: npm
+    directory: /
+    schedule: { interval: weekly }
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+    ignore:
+      # TypeScript majors and minors land breaking type narrowing. Taken
+      # deliberately, with the build green, not on a bot's schedule.
+      # Exit condition: drop this once the repo has no `any` left to protect.
+      - dependency-name: typescript
+        update-types: [version-update:semver-major, version-update:semver-minor]
+    commit-message:
+      prefix: 'chore: :arrow_up:'
+      prefix-development: 'chore(dev): :arrow_up:'
+
+  # 3. NEAR-INERT TODAY, and registered on purpose anyway.
+  #    `FROM node:${NODE_VERSION}-alpine` does not match Dependabot's tag regex,
+  #    and `nginx:alpine` has no version to compare. Registering it now means the
+  #    day these are digest-pinned, it is a one-file change rather than new config.
+  - package-ecosystem: docker
+    directories: [/apps/api, /apps/web]
+    schedule: { interval: weekly }
+    commit-message:
+      prefix: 'build: :arrow_up:'
+
+  # 4. The database image. Majors ignored: a Postgres major is a pg_upgrade
+  #    against real data, which is a planned migration and not a merge.
+  - package-ecosystem: docker-compose
+    directory: /
+    schedule: { interval: monthly }
+    ignore:
+      - dependency-name: postgres
+        update-types: [version-update:semver-major]
+    commit-message:
+      prefix: 'build: :arrow_up:'

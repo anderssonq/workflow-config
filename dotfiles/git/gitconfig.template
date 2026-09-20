@@ -1,0 +1,39 @@
+# Copy to ~/.gitconfig and fill in the two placeholders, or let
+# scripts/install.sh prompt for them.
+
+[user]
+	name = {{ GIT_NAME }}
+	email = {{ GIT_EMAIL }}
+
+[core]
+	editor = nvim
+	excludesfile = ~/.gitignore_global
+
+[init]
+	defaultBranch = main
+
+[pull]
+	# Never a merge commit from a pull. If the branch diverged, say so.
+	rebase = true
+
+[fetch]
+	prune = true
+
+[diff]
+	# Detect moved code as moves rather than as delete-plus-add.
+	colorMoved = zebra
+	algorithm = histogram
+
+[rerere]
+	# Remember how a conflict was resolved and replay it. Pays for itself the
+	# first time a rebase hits the same conflict twice.
+	enabled = true
+
+[push]
+	default = current
+
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true

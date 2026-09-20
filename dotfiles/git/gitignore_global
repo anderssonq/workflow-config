@@ -1,0 +1,16 @@
+# Editor and OS noise
+*~
+.DS_Store
+.vscode/
+.idea/
+
+# Machine-local agent state. This single line is why no project in this setup
+# has ever committed a settings.local.json full of absolute paths and
+# machine-specific permission grants.
+**/.claude/settings.local.json
+**/.claude/scheduled_tasks.lock
+
+# Secrets, wherever they land
+.env.local
+*.pem
+*.key

@@ -1,0 +1,32 @@
+# Multi-stage. The runtime stage deliberately ships no package manager, no
+# migration CLI and no source — see docker-compose.prod.yml's `migrate` service,
+# which exists precisely because this image cannot migrate.
+
+ARG NODE_VERSION=22
+
+FROM node:${NODE_VERSION}-alpine AS base
+RUN corepack enable
+WORKDIR /app
+
+FROM base AS deps
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/api/package.json apps/api/
+COPY packages/shared/package.json packages/shared/
+RUN pnpm install --frozen-lockfile
+
+FROM deps AS build
+COPY . .
+RUN pnpm --filter @scope/shared build \
+ && pnpm --filter @scope/api build \
+ && pnpm --filter @scope/api exec prisma generate
+
+FROM base AS runtime
+ENV NODE_ENV=production
+# Non-root, and created explicitly rather than relying on the image's default.
+RUN addgroup -g 1001 app && adduser -D -u 1001 -G app app
+COPY --from=build --chown=app:app /app/node_modules ./node_modules
+COPY --from=build --chown=app:app /app/apps/api/dist ./dist
+COPY --from=build --chown=app:app /app/packages/shared/dist ./packages/shared/dist
+USER app
+EXPOSE 3000
+CMD ["node", "dist/main.js"]

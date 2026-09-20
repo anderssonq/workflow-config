@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Runs the public-repo gate over what is actually staged, not over the whole
+# tree: the tree can hold work in progress, the commit cannot.
+set -euo pipefail
+
+staged=$(git diff --cached --name-only --diff-filter=ACMR)
+[ -z "$staged" ] && exit 0
+
+# shellcheck disable=SC2086
+exec "$(git rev-parse --show-toplevel)/scripts/scan-secrets.sh" $staged

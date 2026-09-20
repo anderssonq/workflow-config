@@ -1,0 +1,13 @@
+# Copy to .scan-denylist (gitignored) and add one extended regex per line.
+#
+# This exists because the main rules in scripts/scan-secrets.sh are published,
+# so a name whose mere mention is the disclosure cannot live there. Private
+# repository names, client names, internal service names, an employer — those
+# go here, on the machine, and never leave it.
+#
+# Case-insensitive matching is NOT automatic; write the pattern to cover it.
+#
+# Examples of the shape (not real):
+# [Mm]y[Pp]rivate[Aa]pp
+# (?i)acme-internal          # note: POSIX ERE has no (?i) — use [Aa][Cc]...
+# [Cc]lient[Nn]ame

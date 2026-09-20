@@ -1,0 +1,68 @@
+# brew bundle --file=dotfiles/brew/Brewfile
+#
+# Curated rather than dumped: `brew bundle dump` emits the dependency closure,
+# which is 101 formulae here and tells you nothing about why any of them exist.
+# What follows is what was installed on purpose, grouped by why.
+
+tap "anomalyco/tap"
+tap "steipete/tap"
+
+# ── the shell and the terminal ───────────────────────────────────────────
+brew "git"
+brew "gh"
+brew "tree"
+brew "ripgrep"        # what every search in this setup actually runs
+brew "gnu-sed"        # BSD sed's -i takes an argument; scripts here assume GNU
+
+# ── Neovim, and the toolchain its plugins need ───────────────────────────
+# The Lua trio is not optional: the plugin manager, the formatter and the
+# parser generator all want it, and a missing one fails at :checkhealth time
+# rather than at install time.
+brew "neovim"
+brew "lua"
+brew "luajit"
+brew "luarocks"
+brew "stylua"         # Lua formatter — the Neovim config's own lint gate
+brew "tree-sitter"
+brew "universal-ctags"
+brew "ctags"
+
+# ── languages and version managers ───────────────────────────────────────
+# Node arrives through nvm, not brew, so that a project's .nvmrc decides.
+brew "pyenv"
+brew "python@3.12"
+brew "uv"             # the fast Python installer; used by script-only projects
+brew "openjdk"
+brew "shfmt"
+
+# ── containers and local infrastructure ──────────────────────────────────
+brew "docker-compose"
+brew "mkcert"         # locally-trusted certs; what makes https://localhost work
+brew "cloudflared"    # tunnel for testing on a real device over a secure context
+
+# ── local model inference ────────────────────────────────────────────────
+brew "ollama"
+
+# ── AI coding CLIs ───────────────────────────────────────────────────────
+brew "anomalyco/tap/opencode"
+brew "openclaw-cli"
+
+# ── media and assets ─────────────────────────────────────────────────────
+brew "ffmpeg"
+brew "fontforge"
+brew "create-dmg"
+
+# ── occasional ───────────────────────────────────────────────────────────
+brew "jmeter"
+brew "sonar-scanner"
+brew "cocoapods"
+brew "xcodegen"
+
+# ── casks ────────────────────────────────────────────────────────────────
+cask "docker-desktop"
+cask "font-fira-code"
+cask "font-hack-nerd-font"   # the agnoster prompt and Neovim's icons need one
+cask "keycastr"              # on-screen keystrokes, for recordings
+cask "tiles"                 # window management
+cask "codexbar"
+cask "rar"

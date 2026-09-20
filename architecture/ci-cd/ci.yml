@@ -1,0 +1,118 @@
+# Three jobs, deliberately separate, so that three different kinds of red stay
+# readable. A lint failure, a new advisory and a base-image CVE need three
+# different responses; collapsed into one job, only the first is visible.
+name: CI
+
+on:
+  push:
+    branches: [main] # main only, so a PR branch does not run twice
+  pull_request:
+
+# Spelled out rather than inherited. On a repository whose default branch
+# deploys, "what can this workflow do" should be readable without knowing the
+# organisation's defaults.
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: lint · build · test
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    services:
+      postgres:
+        image: postgres:18-alpine # the same major as development compose
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: ci
+        options: >-
+          --health-cmd pg_isready --health-interval 10s
+          --health-timeout 5s --health-retries 5
+        ports: ['5432:5432']
+
+    env:
+      # Throwaway literals, NOT repository secrets, and deliberately so: making
+      # them secrets would imply they matter, and then nobody dares change them.
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+      JWT_ACCESS_SECRET: ci-only-value-not-a-real-secret-0000
+      JWT_REFRESH_SECRET: ci-only-value-not-a-real-secret-0001
+
+    steps:
+      # Actions are pinned by commit SHA; the tag in the comment is what the SHA
+      # resolved to. To bump one:
+      #   gh api repos/<owner>/<repo>/git/ref/tags/<tag> --jq .object.sha
+      # and dereference if the tag is annotated (type "tag", not "commit").
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      # Before setup-node, so that `cache: pnpm` can find the binary. No version
+      # input: it reads packageManager from package.json, which is the pin.
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version-file: package.json
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # The generated client is gitignored, so nothing else regenerates it.
+      - run: pnpm --filter @scope/api exec prisma generate
+
+      - run: pnpm lint
+
+      # Build BEFORE test: the shared package is consumed as built output.
+      - run: pnpm build
+      - run: pnpm test
+
+  audit:
+    name: dependency advisories
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Not a step in `verify`: an advisory is a different kind of red, and it can
+    # appear on a branch that changed no dependency at all.
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version-file: package.json
+      # No install: pnpm audit resolves from the lockfile alone.
+      - run: node .github/scripts/audit-gate.mjs
+
+  scan:
+    name: base image CVEs (report only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      # A scanner pointed at an image you stopped using is a green check that
+      # means nothing. Assert the refs below still match the repository.
+      - name: image refs still match the repository
+        run: |
+          set -euo pipefail
+          node_ver=$(grep -h '^ARG NODE_VERSION=' apps/*/Dockerfile | sort -u)
+          [ "$(printf '%s\n' "$node_ver" | wc -l)" -eq 1 ] \
+            || { echo "Dockerfiles disagree on NODE_VERSION"; exit 1; }
+          grep -q 'postgres:18-alpine' docker-compose.prod.yml \
+            || { echo "postgres tag drifted from docker-compose.prod.yml"; exit 1; }
+
+      # Three steps rather than a matrix, so one runner downloads the
+      # vulnerability database once instead of three times.
+      #
+      # This does NOT cover: application dependencies (that is `audit`), the
+      # final image layers, or anything at runtime. Flip exit-code to '1' once
+      # the base images are digest-pinned — until then a scanner failure is
+      # upstream's schedule, not yours.
+      - uses: aquasecurity/trivy-action@18f2510ee396bbf400402947b394f2dd8c87dbb0 # v0.29.0
+        with: { image-ref: 'node:22-alpine', scanners: vuln, severity: 'HIGH,CRITICAL', exit-code: '0' }
+      - uses: aquasecurity/trivy-action@18f2510ee396bbf400402947b394f2dd8c87dbb0 # v0.29.0
+        with: { image-ref: 'nginx:alpine', scanners: vuln, severity: 'HIGH,CRITICAL', exit-code: '0' }
+      - uses: aquasecurity/trivy-action@18f2510ee396bbf400402947b394f2dd8c87dbb0 # v0.29.0
+        with: { image-ref: 'postgres:18-alpine', scanners: vuln, severity: 'HIGH,CRITICAL', exit-code: '0' }

@@ -1,129 +1,98 @@
 # workflow-config
 
-Dotfiles and AI development tools configuration. Includes Claude Code skills, agents, custom rules, and workflow automation for seamless development across multiple machines.
+My bank of development configuration, skills and practices. Everything a new machine — or a
+new project — needs in order to work the way I work.
 
-## 📁 Structure
+Public on purpose, and carrying nothing sensitive: a hook checks every commit.
 
-```
-.claude/
-├── agents/                         # Specialized Claude agents
-│   ├── spec-context-agent.md       # Spec-driven development orchestrator
-│   ├── pr-review-agent.md          # Code review + PR description generator
-│   ├── pr-description-agent.md     # PR description only (no review)
-│   └── knowledge-graph-agent.md    # Builds/queries a project knowledge graph
-├── skills/                         # Reusable development skills
-│   ├── spec-driven-development/
-│   ├── code-reviewer/
-│   ├── pr-description-generator/
-│   ├── prompt-context-library/
-│   └── knowledge-graph/
-.spec/                              # Generated spec artifacts (gitignored)
-.tmp/                               # Generated output files (gitignored)
-graphify-out/                       # Knowledge-graph output (graph.json, report, html)
+```bash
+git clone <this-repository> workflow-config
+cd workflow-config
+
+./scripts/install.sh                   # shows what it would do, changes nothing
+./scripts/install.sh --apply --brew    # does it
+./scripts/doctor.sh                    # confirms what landed
 ```
 
-## 🚀 Quick Start
+And to install the method into a repository:
 
-### Using Spec Context Agent
-
-Transform Jira tasks into complete specifications before coding:
-
-```
-@spec-context-agent create spec for the following Jira task:
-
-[Paste your Jira URL or task description]
+```bash
+./scripts/new-project.sh ../my-app --settings node-app --agents zone
 ```
 
-**What you get:**
-- `.spec/[task-id]-specification.md` — requirements & acceptance criteria
-- `.spec/[task-id]-plan.md` — technical design & implementation approach
-- `.spec/[task-id]-tasks.md` — ordered, implementable task list
+---
 
-Human approval is required at each step before proceeding.
+## What is here
 
-### Using PR Review Agent
+| Directory | Is |
+| --- | --- |
+| [`claude/`](claude/) | Claude Code skills, agents, commands, hooks and settings |
+| [`playbooks/`](playbooks/) | The practices, in prose. The reasoning everything else assumes |
+| [`architecture/`](architecture/) | Monorepo, import boundaries, CI, containers — with the files beside them |
+| [`ui/`](ui/) | Atomic design, tokens, component patterns, accessibility |
+| [`dotfiles/`](dotfiles/) | zsh, git, brew, herdr, editors, user-level Claude Code |
+| [`scripts/`](scripts/) | Install, scaffold, diagnose, sync, scan |
 
-Generate PR descriptions after implementation:
+Full index: [`INDEX.md`](INDEX.md) to read, [`catalog.json`](catalog.json) for an agent to
+parse. Both are generated from the tree, so neither can lie.
 
-```
-@pr-review-agent review and write the PR
-```
+---
 
-**What you get:**
-- Full senior-level code review
-- Structured PR/MR description saved to `.tmp/`
+## Why it exists
 
-For a PR description **without** a review, use `@pr-description-agent` instead.
+The knowledge was spread across eight repositories and one machine's configuration. Pulling
+it together turned up something I was not expecting:
 
-### Using Knowledge Graph Agent
+> **Four separate projects had arrived at the same skill library, name for name.**
 
-Map a project into a queryable knowledge graph — then ask questions instead of grepping:
+Four with nothing in common — different domains, different stacks, different sizes —
+converged on the same nine questions: what is load-bearing, how a change is
+controlled, what counts as proof, where each configuration value really comes from, how it
+starts, what was already tried and lost, which document holds what, where to look when it
+breaks, and what is worth building after the backlog.
 
-```
-@knowledge-graph-agent map this project
-@knowledge-graph-agent what connects pr-review-agent to code-reviewer?
-@knowledge-graph-agent explain code-reviewer
-```
+That convergence is the argument. It is not one project's habit; these are the questions a
+repository has to answer about itself before an agent can work in it unsupervised. They live
+in [`claude/skills/project/`](claude/skills/project/README.md) as templates, and
+`new-project.sh` installs them.
 
-**What you get** (under `graphify-out/`):
-- `graph.json` — nodes, edges, communities, god nodes (confidence-tagged: EXTRACTED / INFERRED / AMBIGUOUS)
-- `GRAPH_REPORT.md` — most-connected concepts, surprising cross-module links, the "why", suggested questions
-- `graph.html` — self-contained interactive viz (click, search, filter by community)
+---
 
-Fully native — no external package or API key. Re-run with `--update` after changes to refresh only what moved.
+## The four rules that carry the most weight
 
-## 🎯 Workflow
+If you read nothing else in [`playbooks/`](playbooks/):
 
-```
-1. Spec Phase
-   @spec-context-agent [Jira URL or description]
-   → Generates .spec/[task-id]-{specification,plan,tasks}.md
-   → Human approves at each gate (Specify → Plan → Tasks)
+1. **Never rewrite the working tree.** No `stash`, `checkout`, `restore` or `reset --hard`.
+   Parallel sessions may be holding uncommitted work, and a stash destroys it with no trace
+   at the point of loss.
+2. **Never report something as working without running it.** The cost lands on whoever
+   believes you.
+3. **Never fan two agents onto the same files.** The second write silently wins.
+4. **The request is consent for what it plainly asks**, and for nothing you noticed along
+   the way.
 
-2. Implementation Phase
-   → Follow tasks from .spec/[task-id]-tasks.md
+---
 
-3. Review & PR Phase
-   @pr-review-agent review and write the PR
-   → Reviews changes, generates PR description in .tmp/
-```
+## What is not here, and why
 
-## 🛠️ Skills
+| Not here | Why |
+| --- | --- |
+| `~/.secrets` | Every API key on the machine. Only the `.example` travels, with the names |
+| Neovim | Its own repository, cloned by URL from a gitignored `dotfiles/local.env`; a copy here would drift the day after, with nothing to signal it |
+| Third-party skill bodies | Someone else's work under their own licence. The lockfile ships; `sync-skill.mjs` fetches them |
+| Hostnames, IPs, absolute paths, account and project names | See below |
 
-### spec-driven-development
-4-phase gated workflow (Specify → Plan → Tasks → Implement). Enforces human approval before any code is written.
+**What leaks from a configuration repository is almost never a credential** — those get
+noticed and rotated. It is the topology: hostnames, the names of private repositories, the
+deploy mechanism, server aliases, and the *names* of credentials. None of that is a secret.
+Together it is a map, and a map does not get rotated after it is published.
 
-### code-reviewer
-Comprehensive code review for TypeScript, JavaScript, Python, Swift, Kotlin, Go. Includes analysis scripts, best-practice checks, security scanning, and review-checklist generation.
+That is why [`scripts/scan-secrets.sh`](scripts/scan-secrets.sh) runs in a pre-commit hook
+instead of depending on anyone remembering. Names that cannot appear in the published rule
+list — because the script itself is published — go in a gitignored `.scan-denylist`.
 
-### pr-description-generator
-Generates structured PR descriptions following Conventional Commits + Gitmoji.
+---
 
-### prompt-context-library
-Save and retrieve reusable prompts and project context as markdown, so you don't rewrite the same instructions for recurring agent tasks.
+## Licence
 
-### knowledge-graph
-Maps a project (code, docs, configs, media) into a queryable knowledge graph using only native tools — a Claude-native replica of graphify with no external package. Produces `graph.json` + `GRAPH_REPORT.md` + `graph.html`; supports query / path / explain and incremental `--update`.
-
-## 🎓 Best Practices
-
-### ✅ Do
-- Use `spec-context-agent` before starting implementation
-- Approve at each gate (Specify, Plan, Tasks)
-- Commit `.spec/` files alongside implementation code
-- Reference specs in PR descriptions
-
-### ❌ Don't
-- Skip spec generation for "simple" tasks
-- Proceed without human approval at gates
-- Delete spec files after implementation
-
-## 📦 Installation
-
-1. Clone this repository
-2. Copy `.claude/` folder to your project root
-3. Start using agents with `@agent-name` syntax
-
-## 📄 License
-
-MIT
+MIT. See [`LICENSE`](LICENSE).

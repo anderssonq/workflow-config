@@ -1,0 +1,8 @@
+{
+  "workbench.colorTheme": "One Dark Pro Night Flat",
+  "workbench.sideBar.location": "right",
+  "editor.fontSize": 14,
+  "editor.lineNumbers": "relative",
+  "vim.useSystemClipboard": true,
+  "claudeCode.preferredLocation": "panel"
+}

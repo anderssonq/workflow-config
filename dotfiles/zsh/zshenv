@@ -1,0 +1,13 @@
+# ~/.zshenv ───────────────────────────────────────────────────────────────
+# Loaded ALWAYS: login shells, interactive shells and scripts alike.
+# Global environment variables ONLY — PATH and toolchains.
+# No aliases, no prompt, no output. This file runs for every non-interactive
+# script too, and anything that prints here breaks scp, rsync, and anything
+# else that parses a remote shell's output.
+# ──────────────────────────────────────────────────────────────────────────
+
+# Rust / Cargo (adds ~/.cargo/bin to PATH)
+[ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
+
+# User-local binaries
+export PATH="$HOME/.local/bin:$PATH"

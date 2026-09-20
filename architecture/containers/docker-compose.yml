@@ -1,0 +1,28 @@
+# Development. Only the database runs in a container: the applications run on the
+# host under their dev servers, because reload speed is the whole point of a dev
+# loop and a bind-mounted build is slower at it. The database is containerised so
+# its major matches production exactly.
+
+services:
+  db:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-app}
+      POSTGRES_DB: ${POSTGRES_DB:-app}
+    ports:
+      # Loopback ONLY. A bare '5432:5432' publishes the database to every machine
+      # on the network, is invisible in any output, and is never what anyone meant.
+      - '127.0.0.1:5432:5432'
+    volumes:
+      - db-data:/var/lib/postgresql
+    healthcheck:
+      # $$ escapes for compose interpolation, not a typo.
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER:-app}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  db-data:

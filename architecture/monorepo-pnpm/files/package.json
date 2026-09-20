@@ -1,0 +1,16 @@
+{
+  "name": "example-monorepo",
+  "private": true,
+  "packageManager": "pnpm@10.30.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @scope/shared build && pnpm --parallel --filter @scope/api --filter @scope/web dev",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "lint": "eslint . --max-warnings 0",
+    "format": "prettier --write .",
+    "check": "pnpm lint && pnpm build && pnpm test"
+  }
+}

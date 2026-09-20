@@ -1,0 +1,19 @@
+.git
+node_modules
+**/node_modules
+**/dist
+**/coverage
+.env
+.env.*
+!.env.example
+
+# Agent configuration is for humans and editors, not for images.
+.claude
+.agents
+
+.DS_Store
+**/.DS_Store
+
+# Documentation is excluded so that a docs-only commit never invalidates a layer
+# and never triggers an image rebuild.
+*.md

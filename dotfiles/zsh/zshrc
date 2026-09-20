@@ -1,0 +1,40 @@
+# ~/.zshrc — interactive shells only.
+# Environment variables go in ~/.zshenv; one-time session setup in ~/.zprofile.
+
+export ZSH="$HOME/.oh-my-zsh"
+ZSH_THEME="agnoster"
+
+# zsh-autosuggestions, zsh-syntax-highlighting, fast-syntax-highlighting and
+# zsh-autocomplete are not bundled with oh-my-zsh. Install them into
+# $ZSH_CUSTOM/plugins before enabling — see ./README.md.
+plugins=(git zsh-autosuggestions zsh-syntax-highlighting fast-syntax-highlighting zsh-autocomplete)
+
+source "$ZSH/oh-my-zsh.sh"
+
+# ── aliases ──────────────────────────────────────────────────────────────
+alias tree1="tree -L 1"
+alias tree2="tree -L 2"
+
+# ── secrets ──────────────────────────────────────────────────────────────
+# API keys live in ~/.secrets, which is NOT in version control and is not in
+# this repository. Copy secrets.example.zsh to ~/.secrets and fill it in.
+[ -f "$HOME/.secrets" ] && source "$HOME/.secrets"
+
+# ── optional toolchains ──────────────────────────────────────────────────
+# Each guarded, so a machine missing one still gets a working shell.
+
+# Deno
+[ -f "$HOME/.deno/env" ] && . "$HOME/.deno/env"
+
+# LM Studio CLI
+[ -d "$HOME/.lmstudio/bin" ] && export PATH="$PATH:$HOME/.lmstudio/bin"
+
+# Lua 5.1 (LuaJIT-compatible; needed by some Neovim tooling)
+if [ -d "/opt/homebrew/opt/lua@5.1/bin" ]; then
+  export PATH="/opt/homebrew/opt/lua@5.1/bin:$PATH"
+fi
+
+# Google Cloud SDK. Point GCLOUD_SDK_DIR at wherever it was unpacked.
+GCLOUD_SDK_DIR="${GCLOUD_SDK_DIR:-$HOME/google-cloud-sdk}"
+[ -f "$GCLOUD_SDK_DIR/path.zsh.inc" ]       && . "$GCLOUD_SDK_DIR/path.zsh.inc"
+[ -f "$GCLOUD_SDK_DIR/completion.zsh.inc" ] && . "$GCLOUD_SDK_DIR/completion.zsh.inc"

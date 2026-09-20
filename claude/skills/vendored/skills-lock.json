@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "skills": {
+    "design-taste-frontend": {
+      "source": "Leonxlnx/taste-skill",
+      "sourceType": "github",
+      "ref": "5217fb45be2c0b302f29c9cd31cbd3237501c684",
+      "skillPath": "skills/taste-skill/SKILL.md",
+      "license": "MIT",
+      "computedHash": "aa194351b246b8b4799099d4ed7b033d29eab6e6e3d58d8d2172978be7b3ec89",
+      "treeHash": "b9bb3c71249fcb855b3799dfdef33622157ccae5d8889deb4a6dac5afe3a0696",
+      "files": 1
+    },
+    "vercel-composition-patterns": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "ref": "063bee94c3f4df8453406c830b0a7df0f2860278",
+      "skillPath": "skills/composition-patterns/SKILL.md",
+      "license": "MIT",
+      "computedHash": "e38e0eaa609316b10423a9a138ed95e35099accd3f735585295c8a8f165c28a3",
+      "treeHash": "8581555506d86822ace12e19db1c5c207e6bd6f672af385e2b533fdf18534e39",
+      "files": 14
+    },
+    "vercel-react-best-practices": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "ref": "063bee94c3f4df8453406c830b0a7df0f2860278",
+      "skillPath": "skills/react-best-practices/SKILL.md",
+      "license": "MIT",
+      "computedHash": "71ed7794962fa6e803ee83030517b5b93a9f70fbfeb431ec4535c5480a8d8355",
+      "treeHash": "880cfe46f2e4f06f2682f6d300dfde38b2142d3daf0a5198941a428804bb88e5",
+      "files": 76
+    },
+    "vercel-react-view-transitions": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "ref": "063bee94c3f4df8453406c830b0a7df0f2860278",
+      "skillPath": "skills/react-view-transitions/SKILL.md",
+      "license": "MIT",
+      "computedHash": "1520343c8814c972fee001cac6d6185976d6eb3f4edcac33afe95c10f3b3228b",
+      "treeHash": "cd0e221c4881b67216a4d829b747c1d46e3d2049ba7e9998617526c6af930f1a",
+      "files": 9
+    },
+    "web-design-guidelines": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "ref": "063bee94c3f4df8453406c830b0a7df0f2860278",
+      "skillPath": "skills/web-design-guidelines/SKILL.md",
+      "license": "MIT",
+      "computedHash": "f4647ca866a3accf763777f83e7682954f0187cd6bea7eea0399796652414e8f",
+      "treeHash": "5c82bcead31d834436a99c76a198233d3230152f71b7cd1ea0de7448f911dfba",
+      "files": 1
+    },
+    "impeccable": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "ref": "f2c7051853848826aac2f4646581d62a732155ad",
+      "skillPath": ".agent/skills/impeccable/SKILL.md",
+      "license": "Apache-2.0",
+      "legalFiles": [
+        "LICENSE",
+        "NOTICE.md"
+      ],
+      "caution": "scripts/impeccable is an executable launcher that downloads and runs a self-contained binary on first use. Read scripts/ before running anything from this skill.",
+      "computedHash": "5fe12555b79963519720034acb9d720a72e9eedaa6c69814696d14e1c631962e",
+      "treeHash": "c57e38f52723a1b08d81d8631f1a6f42e84638e4cb9d041fa4334e4082c1fbad",
+      "files": 52
+    }
+  }
+}

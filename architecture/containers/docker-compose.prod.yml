@@ -1,0 +1,102 @@
+# Production. No host ports are published: a reverse proxy terminates TLS and
+# routes by hostname. Every secret comes from the deployment platform.
+
+services:
+  db:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - db-data:/var/lib/postgresql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          # Keeps the database from starving the applications on a shared box.
+          memory: 512M
+
+  # A one-shot SCHEMA GATE, not a step in the app's entrypoint.
+  #
+  # `target: build` reuses the build stage, so this costs a container run rather
+  # than a second image — and the runtime image below deliberately ships no
+  # migration CLI.
+  #
+  # NODE_ENV=production is load-bearing twice: it arms the seed's guard, and it
+  # puts the seed in bootstrap-only mode. An "idempotent" upserting seed passes a
+  # plain re-run and still restores rows a human deliberately deleted.
+  migrate:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: build
+    command: sh -c "pnpm exec prisma migrate deploy && pnpm exec prisma db seed"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL}
+    depends_on:
+      db: { condition: service_healthy }
+    restart: 'no' # exiting 0 is success, not a reason to restart forever
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+    depends_on:
+      db: { condition: service_healthy }
+      migrate: { condition: service_completed_successfully }
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        # The `:-` matters: an unset variable becomes empty rather than failing
+        # the build, which is what you want for a provenance stamp.
+        VITE_API_URL: ${API_URL}
+        VITE_GIT_COMMIT: ${GIT_COMMIT:-}
+    restart: unless-stopped
+    depends_on: [api]
+
+  # The public integration surface. TWO ENFORCED ABSENCES, documented here
+  # because an absence that is merely current is a bug waiting for someone helpful:
+  #
+  #   1. No DATABASE_URL, ever. This service formats and forwards; a test proves
+  #      it carries no database client at all.
+  #   2. No token. The config loader REFUSES TO START in http mode if one is set,
+  #      so a well-meaning addition in the deploy panel takes the service down
+  #      rather than quietly granting anonymous access.
+  #
+  # It reaches the API by compose service name, so the internal hop does not
+  # depend on DNS, the proxy, or certificate renewal.
+  integrations:
+    build:
+      context: .
+      dockerfile: apps/mcp/Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      API_URL: http://api:3000
+    depends_on: [api]
+    deploy:
+      resources:
+        limits:
+          # Measured 47 MiB idle. The cap exists because the host has no swap,
+          # so a leak here restarts this container instead of the kernel killing
+          # something else's process.
+          memory: 256M
+
+volumes:
+  db-data:

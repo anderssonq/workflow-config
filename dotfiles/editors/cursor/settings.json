@@ -1,0 +1,7 @@
+{
+  "window.autoDetectColorScheme": true,
+  "editor.lineNumbers": "relative",
+  "vim.useSystemClipboard": true,
+  "claudeCode.preferredLocation": "panel",
+  "claudeCode.useTerminal": true
+}
