@@ -8,7 +8,7 @@ goes where if you would rather do it by hand.
 | [`zsh/`](zsh/) | The three-file shell split, and the secrets example |
 | [`git/`](git/) | A templated `.gitconfig` and the global ignore file |
 | [`brew/`](brew/) | A curated `Brewfile`, grouped by why each entry exists |
-| [`herdr/`](herdr/) | The terminal multiplexer, its radar plugin, and a timer job |
+| [`herdr/`](herdr/) | The terminal multiplexer, its radar plugin, and the hook that numbers its rows |
 | [`nvim/`](nvim/) | Why the Neovim config is its own repository, and how it gets cloned |
 | [`claude/`](claude/) | User-level Claude Code settings and theme |
 | [`editors/`](editors/) | VS Code, Cursor and Zed, sanitised |

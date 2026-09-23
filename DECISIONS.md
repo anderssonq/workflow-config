@@ -21,6 +21,7 @@ Format and numbering rules:
 | [008](#adr-008--vendored-entries-record-their-own-licence-and-legal-files-travel-with-them) | Vendored entries record their own licence, and legal files travel with them | active |
 | [009](#adr-009--english-everywhere-enforced-by-the-linter) | English everywhere, enforced by the linter | active |
 | [010](#adr-010--plugin-generated-config-is-not-committed-and-the-file-it-writes-is-copied-not-linked) | Plugin-generated config is not committed, and the file it writes is copied, not linked | active |
+| [011](#adr-011--rows-are-numbered-by-radars-render-hook-and-agents-get-numbers-too) | Rows are numbered by radar's render hook, and agents get numbers too | active |
 
 ---
 
@@ -183,3 +184,28 @@ Format and numbering rules:
   layers on top; and the five-second `sidebar-index.sh` run left `tab_bar_right` for a
   launchd job at ten seconds. Revisit if radar ever gains a way to declare overrides it will
   preserve — the subtable trick works, but it works by not being on a list.
+
+## ADR-011 — Rows are numbered by radar's render hook, and agents get numbers too
+
+- **Context:** workspace numbers came from `sidebar-index.sh`, run by a launchd job every ten
+  seconds, which renamed each workspace to carry the digit `prefix+shift+N` reaches. Radar
+  shows the workspace name as the Agents panel's group header, so the digit landed there too
+  and the panel read as agents numbered per workspace — while the index `prefix+alt+N`
+  actually uses, a row's position across the whole panel, was shown nowhere. Agents had been
+  left unnumbered on purpose: herdr exposes no agent `number`, and a wrong number is worse than
+  none.
+- **Decision:** retire the script and the job. Radar's `render_hook` (`dotfiles/herdr/radar/`)
+  prefixes workspace names with `[N]` from herdr's workspace `number`, and agent titles with
+  `N ~`, the row's position in the panel. The agent position is computed from the sort radar
+  installs on the panel — its `ws_key`, `tab_key` and `sort_key` tokens, in the mode its flag
+  records — so the hook reproduces the order the client draws rather than guessing it.
+- **Alternatives:** keep renaming workspaces (it fights anyone renaming by hand, needs a
+  background job and a state file of base names, and still leaves agents unnumbered); `show_tab`
+  (radar's only built-in prefix, and it shows the tab label, not a number); patching radar
+  (lost on every plugin update); no agent numbers (the earlier stance, sound while herdr owned the order and
+  no longer once radar owns it).
+- **Consequences:** nothing is renamed any more, so labels stay clean and hand renames are
+  safe. The agent number is only right while radar owns the panel order, and it moves as
+  activity reorders the panel. It also couples the hook to radar's token names and its
+  view-mode flag file. Revisit if herdr exposes an agent index, or if radar renames those
+  tokens or changes how it sorts.

@@ -65,9 +65,15 @@ if grep -q 'herdr-radar' "$HOME/.config/herdr/config.toml" 2>/dev/null; then
     && ok 'radar managed blocks present in config.toml' \
     || warn 'config.toml mentions radar but has no managed blocks — run the plugin once'
 fi
+RADAR_CFG="$HOME/.config/herdr/plugins/config/hhdebb.herdr-radar"
+grep -q '^render_hook' "$RADAR_CFG/config.toml" 2>/dev/null \
+  && [ -f "$RADAR_CFG/render-hook.js" ] \
+  && ok 'radar render hook installed' \
+  || warn 'radar render hook missing — workspaces and agents will have no numbers'
+# The retired numbering job renames workspaces; with the hook also prefixing
+# them, every label would carry two numbers.
 [ -f "$HOME/Library/LaunchAgents/dev.herdr.sidebar-index.plist" ] \
-  && ok 'sidebar-index job installed' \
-  || warn 'sidebar-index job missing — see dotfiles/herdr/README.md'
+  && warn 'retired sidebar-index job still installed — see dotfiles/herdr/README.md'
 
 if [ -f "$HOME/.gitconfig" ]; then
   if grep -q '{{ GIT_' "$HOME/.gitconfig"; then bad '~/.gitconfig still has template placeholders'

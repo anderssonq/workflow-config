@@ -124,20 +124,21 @@ if wants herdr; then
   # the absolute path radar puts in its tab-bar block — and the secret gate
   # would then refuse every commit until someone worked out why.
   copy dotfiles/herdr/config.toml      "$HOME/.config/herdr/config.toml"
-  link dotfiles/herdr/sidebar-index.sh "$HOME/.config/herdr/sidebar-index.sh"
 
-  # The periodic sidebar-index run. It used to be a tab_bar_right entry until
-  # herdr-radar took that key over. launchd expands neither ~ nor $HOME, so the
-  # job description is rendered from a template rather than linked.
-  JOB="$HOME/Library/LaunchAgents/dev.herdr.sidebar-index.plist"
-  if [ "$APPLY" -eq 1 ]; then
-    mkdir -p "$HOME/Library/LaunchAgents" "$HOME/.local/state/herdr-sidebar-index"
-    sed "s|{{ HOME }}|$HOME|g" \
-      "$REPO/dotfiles/herdr/dev.herdr.sidebar-index.plist.template" > "$JOB"
-    say "wrote $JOB"
-    say 'load it with:  launchctl bootstrap gui/$(id -u) "'"$JOB"'"'
-  else
-    say "would render $JOB from the template"
+  # Radar's own settings and the render hook that numbers workspaces and agents.
+  # The settings file is copied because radar's popup rewrites it; the hook is
+  # linked because nothing writes to it.
+  RADAR_CFG="$HOME/.config/herdr/plugins/config/hhdebb.herdr-radar"
+  copy dotfiles/herdr/radar/config.toml     "$RADAR_CFG/config.toml"
+  link dotfiles/herdr/radar/render-hook.js  "$RADAR_CFG/render-hook.js"
+  say 'radar loads the hook at daemon start — restart it with the state-stop and state-start actions'
+
+  # The numbering used to be a launchd job that renamed workspaces. Left loaded,
+  # it would put a digit into every label and radar would then show two.
+  OLD_JOB="$HOME/Library/LaunchAgents/dev.herdr.sidebar-index.plist"
+  if [ -f "$OLD_JOB" ]; then
+    say "found the retired sidebar-index job: $OLD_JOB"
+    say 'remove it with:  launchctl bootout gui/$(id -u)/dev.herdr.sidebar-index && rm "'"$OLD_JOB"'"'
   fi
 
   # herdr-radar generates the config blocks this repo deliberately omits.

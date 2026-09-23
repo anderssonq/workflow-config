@@ -5,8 +5,8 @@ Terminal multiplexer, Neovim-first and agent-aware.
 | File | Goes to |
 | --- | --- |
 | `config.toml` | `~/.config/herdr/config.toml` |
-| `sidebar-index.sh` | `~/.config/herdr/sidebar-index.sh` |
-| `dev.herdr.sidebar-index.plist.template` | Rendered into `~/Library/LaunchAgents/` by `install.sh` |
+| `radar/config.toml` | `$(herdr plugin config-dir hhdebb.herdr-radar)/config.toml` |
+| `radar/render-hook.js` | `$(herdr plugin config-dir hhdebb.herdr-radar)/render-hook.js` |
 
 The config is worth reading even if you never use herdr: **every binding carries the reason
 it is that binding**, and the reasons are all about not stealing keys from Neovim.
@@ -79,41 +79,59 @@ managed list, and herdr layers them on top of whatever radar writes.
 That is the general trick: **any chrome override you need to keep goes in a subtable radar
 does not manage.**
 
-**`tab_bar_right` used to run `sidebar-index.sh` every 5 seconds.** Radar owns that key now,
-so the periodic work moved to a launchd job at a 10-second interval, rendered from
-`dev.herdr.sidebar-index.plist.template`. If you need something on a timer alongside herdr,
-that is the shape — `tab_bar_right` is no longer available for it.
+**`tab_bar_right` used to run a workspace-numbering script.** Radar owns that key now, and
+the numbering moved into radar itself — see below. If you need something on a timer
+alongside herdr, `tab_bar_right` is no longer available for it.
 
-```bash
-launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/dev.herdr.sidebar-index.plist
-launchctl bootout   gui/$(id -u)/dev.herdr.sidebar-index          # to remove it
+## Numbering
+
+```
+Spaces                  Agents
+[1] Global              [1] Global
+[2] api                   1 ~ Fix flaky retry test
+[3] web                 [2] api
+                          2 ~ Migrate invoices table
+                          3 ~ Trace duplicate charges
 ```
 
-`install.sh` renders the file and prints the load command rather than running it: loading a
-background job is a decision worth making on purpose.
+`[N]` on a workspace is the index `prefix+shift+N` jumps to. `N ~` on an agent is the index
+`prefix+alt+N` jumps to — its row position in the Agents panel, counted across groups, not
+within one. The brackets are there because the workspace name doubles as the Agents panel's
+group header, and a bare digit there would read as one more agent number.
 
-## Workspace numbers, and why agents have none
+Both come from radar's render hook, `radar/render-hook.js`, which radar calls just before it
+publishes a row. **Nothing is renamed**: the prefixes exist only in what radar draws, so
+renaming a workspace by hand is safe and the real label never carries a digit.
 
-`sidebar-index.sh` prefixes each workspace label with the digit `prefix+shift+N` jumps to,
-taken from the server's authoritative workspace `number`. Base names are remembered in
-`~/.local/state/herdr-sidebar-index/base-labels.json`, so reordering re-prefixes the original
-name instead of stacking digits. Radar renders `$space_label` and `$group`, so the numbers
-show through its rows.
+**The agent number is a reconstruction.** herdr exposes an authoritative `number` for
+workspaces and tabs and none for agents: `focus_agent` indexes the rows the client draws. The
+hook reproduces that order from the same sort radar installs on the panel — the `ws_key`,
+`tab_key` and `sort_key` tokens radar writes, in the mode radar's flag says (`active`,
+`recent`, or herdr's own order). It is right because radar owns the order, and only while it
+does. Two consequences:
 
-**Do not rename workspaces by hand**, or you will be fighting that script.
+- Radar orders by activity, so **an agent's number moves** as other agents start working.
+  The number is for the jump you make now, not a name to remember.
+- The hook reads herdr at most every 1.5 seconds, so a row can show its previous number for
+  that long after a reorder.
 
-**Agents are deliberately not numbered.** herdr exposes an authoritative `number` for
-workspaces and tabs and none for agents: `focus_agent` (`prefix+alt+N`) indexes the rows the
-*client* draws, which is client state and not in the API. Any agent index would be guesswork,
-and a number that is wrong is worse than no number.
-
-## `sidebar-index.sh` is Python
-
-Despite the extension. herdr expects that exact filename, so it stays — but `bash -n` will
-report a syntax error on it and be wrong. Check it with:
+The hook is loaded once, when radar's daemon starts. After editing it:
 
 ```bash
-python3 -c 'import ast,sys; ast.parse(open(sys.argv[1]).read())' dotfiles/herdr/sidebar-index.sh
+herdr plugin action invoke hhdebb.herdr-radar.state-stop
+herdr plugin action invoke hhdebb.herdr-radar.state-start
+```
+
+A hook that throws is treated as "no change" by radar, so a bug shows up as missing numbers,
+never as a blank sidebar.
+
+**Numbering used to be a launchd job** (`dev.herdr.sidebar-index`) that renamed every
+workspace to carry its digit. On a machine that still has it, every label shows two numbers.
+Remove it, then drop the digit it left on each label with `herdr workspace rename`:
+
+```bash
+launchctl bootout gui/$(id -u)/dev.herdr.sidebar-index
+rm ~/Library/LaunchAgents/dev.herdr.sidebar-index.plist
 ```
 
 ## What is deliberately not here

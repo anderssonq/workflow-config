@@ -1,0 +1,11 @@
+# herdr-radar's own settings. Lives in the plugin config directory:
+#   $(herdr plugin config-dir hhdebb.herdr-radar)/config.toml
+# Copied, not linked: the settings popup (prefix+,) rewrites this file in place.
+
+# Numbers agent rows and workspace names. See ../README.md, "Numbering".
+render_hook = "render-hook.js"
+
+# The hook's `N ~` already leads the title; a tab label in front of it would
+# push the number off the left edge where the eye looks for it.
+show_tab = false
+trim_group_prefix = true
